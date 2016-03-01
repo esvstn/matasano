@@ -1,32 +1,52 @@
-#include <stdio.h>
 #include <string.h>
+#include <stdio.h>
 
-int str2hex(unsigned char* src)
+#define werror(a) printf("%s:%s(): %s\n", __FILE__, __FUNCTION__, a)
+
+unsigned char char2nibble(unsigned char c)
 {
-  int i;
-  int srclen = strlen(src);
-
-  for(i=0; i <= srclen; i++)
+  if('0' <= c && c <= '9')
     {
-      if('0' <= src[i] && src[i] <= '9')
-	{
-	  src[i] = src[i] - '0';
-	}
-      else if('a' <= src[i] && src[i] <= 'f')
-	{
-	  src[i] = src[i] - 'a' + 10;
-	}
-      else if('A' <= src[i] && src[i] <= 'F')
-	{
-	  src[i] = src[i] - 'A' + 10;
-	}
-      else if(src[i] == 0) return i;
-      else return -1;
+      return c - '0';
     }
-  return -2;
+  else if('a' <= c && c <= 'f')
+    {
+      return c - 'a' + 10;
+    }
+  else if('A' <= c && c <= 'F')
+    {
+      return c - 'A' + 10;
+    }
+  werror(" char value is not in \"0\" - \"F\" range");
+  return 0x10;
 }
 
-unsigned char base2chr(unsigned char c)
+unsigned char* unhex(unsigned char* src, unsigned char* dst, size_t len)
+{
+  int i;
+  unsigned char lnibble, rnibble;
+  if ( len % 2 != 0 )
+    {
+      werror("length is not an even number");
+      return 0;
+    }
+  
+  for(i=0; i < len/2; i++)
+    {
+      lnibble = char2nibble(src[i*2]);
+      rnibble = char2nibble(src[(i*2)+1]);
+
+      if( (lnibble > 0xf)  || (rnibble > 0xf) ) 
+	{
+	  werror("input string contains incorrect chars");
+	  return 0;
+	}
+      dst[i] = (lnibble << 4) | rnibble;
+    }
+  return dst;	  
+}
+
+unsigned char base2char(unsigned char c)
 {
   if(c < 0x1a)
     {
@@ -52,33 +72,46 @@ unsigned char base2chr(unsigned char c)
 }
 
 
-size_t hex2basestr(unsigned char* src, size_t len)
+size_t hex2base(unsigned char* src, unsigned char* dst, size_t len)
 {
   int hc,bc;
   
-  for(hc=bc=0; hc < len; hc+=3,bc+=2)
+  for(hc=bc=0; hc < len; hc+=3,bc+=4)
     {
-      src[bc] = base2chr((src[hc + 0] << 2) | (src[hc + 1] >> 2));
-      src[bc + 1] = base2chr(((src[hc + 1] << 4) & 0x30) | src[hc + 2]);  
+      dst[bc + 0] = src[hc] >> 2;
+      dst[bc + 1] = ((src[hc] << 4) & 0x3f) | src[hc+1] >> 4;
+      dst[bc + 2] = ((src[hc+1] << 2) & 0x3f) | src[hc+2] >> 6;
+      dst[bc + 3] = src[hc+2] & 0x3f;
     }
-  src[bc + 1] = '\0';
   return bc;
+}
+
+size_t base2str(unsigned char* src, size_t len)
+{
+  for(--len; len >= 0; len--)
+    {
+      src[len] = base2char(src[len]);
+      printf("%c \n",src[len]);
+    }
+  return 0;
 }
 
 
 int main()
 {
   unsigned char src[] = "49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d";
+  unsigned char dst[strlen(src)/2];
   size_t len;
 
   printf("%s\n",src);
-  if(0 > (len = str2hex(src)))
+  
+  if(!unhex(src, dst, strlen(src)))
     {
-      printf("chr2hex failed: return %d", len);
       return -1;
     }
 
-  hex2basestr(src, len);
+  len = hex2base(dst, src, strlen(src)/2);
+  base2str(src,len);
   printf("%s\n",src);
   return 0;
 }	
