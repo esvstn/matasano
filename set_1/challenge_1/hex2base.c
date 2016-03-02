@@ -88,11 +88,12 @@ size_t hex2base(unsigned char* src, unsigned char* dst, size_t len)
 
 size_t base2str(unsigned char* src, size_t len)
 {
-  for(--len; len >= 0; len--)
+  int i;
+  for(i=0; i<len; i++)
     {
-      src[len] = base2char(src[len]);
-      printf("%c \n",src[len]);
+      src[i] = base2char(src[i]);
     }
+  src[len]='\0';
   return 0;
 }
 
