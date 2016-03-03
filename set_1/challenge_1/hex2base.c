@@ -1,7 +1,7 @@
 #include <string.h>
 #include <stdio.h>
+#include "werror.h"
 
-#define werror(a) printf("%s:%s(): %s\n", __FILE__, __FUNCTION__, a)
 
 unsigned char char2nibble(unsigned char c)
 {
