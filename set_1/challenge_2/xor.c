@@ -71,28 +71,37 @@ unsigned char* hex(unsigned char *src, unsigned char *dst, size_t len)
   return dst;
 }
 
-unsigned char* xor(unsigned char* src, unsigned char* dst, size_t len)
+unsigned char* xor(unsigned char* src, unsigned char* key, size_t len, size_t keylen)
 {
-  int i;
-  for(i=0; i<len; i++)
+  int blocks,i,j;
+  if (len % keylen != 0)
     {
-      dst[i] = src[i] ^ dst[i];
+      werror("Length is not divisible by keylen evenly");
+      return 0;
     }
-  return dst;
+  blocks = len / keylen;
+  for(i=0; i * keylen < len; i++)
+    {
+      for(j=0; j<keylen; j++)
+	{
+	  src[ (i * keylen) + j ] = src[ (i * keylen) + j] ^ key[j];
+	}
+    }
+  return src;
 }
 
 int main()
 {
-  unsigned char src1[] = "1c0111001f010100061a024b53535009181c";
-  unsigned char src2[] = "686974207468652062756c6c277320657965";
-  unsigned char dst[strlen(src1)];
+  unsigned char src[] = "1c0111001f010100061a024b53535009181c";
+  unsigned char key[] = "686974207468652062756c6c277320657965";
+  unsigned char dst[strlen(src)];
   int len = 0;
 
-  len = strlen(src1);
-  unhex(src1, src1, len);
-  unhex(src2, src2, len);
-  xor(src1,src2,len);
-  hex(src2,dst,len/2);
-  printf("%s\n",dst);
+  len = strlen(src);
+  unhex(src, src, len);
+  unhex(key, key, len);
+  xor(src, key, len, len);
+  hex(src, dst, len/2);
+  printf("%s\n", dst);
   return 0;
 }
