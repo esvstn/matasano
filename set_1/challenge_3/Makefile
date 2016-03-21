@@ -4,6 +4,6 @@ INCLUDE_DIR=$(PWD)/../../include
 CFLAGS= -I$(INCLUDE_DIR) 
 
 hex2base:
-	$(CC) *.c -o hex2base $(CFLAGS)
+	$(CC) *.c -o hack_singlebyte_xor $(CFLAGS)
 clean:
-	rm ./hex2base
+	rm ./hack_singlebyte_xor
